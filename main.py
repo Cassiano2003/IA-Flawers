@@ -1,3 +1,5 @@
+from cria_data import Cria_data
+from nosso_modelo import RedeFlawers
 import matplotlib.pyplot as plt
 import numpy as np
 import torch.nn as nn
@@ -81,8 +83,6 @@ def acuracia(test, device, PATH):
 
 
 def main():
-    from cria_data import Cria_data
-    from nosso_modelo import RedeFlawers
     os.system("clear")
 
     data = Cria_data(tamanho=256, local="flowers", qnt_treino=0.7, qnt_valida=0.15, batch_size=32) 
@@ -95,6 +95,7 @@ def main():
     
     net = RedeFlawers().to(device)
     criterion = nn.CrossEntropyLoss()
+    #optimizer = optim.SGD(net.parameters(), lr=0.0001, momentum=0.9)
     optimizer = optim.Adam(net.parameters(), lr=0.001)
 
     
