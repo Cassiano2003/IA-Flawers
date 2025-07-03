@@ -38,8 +38,7 @@ class RedeFlawers(nn.Module):
 
         #Linear
         self.fc1 = nn.LazyLinear(128)
-        self.fc2 = nn.Linear(128, 64)
-        self.fc3 = nn.Linear(64, 5)
+        self.fc2 = nn.Linear(128, 5)
 
 
     #Esta fortemente aclopada a proxima camada recebe o resultado da camada de cima
@@ -90,11 +89,6 @@ class RedeFlawers(nn.Module):
 
         #print(f'c1: {x.shape}')
         x = self.fc2(x)
-        x = F.relu(x)
-        x = self.drop(x)
 
         #print(f'c2: {x.shape}')
-        x = self.fc3(x)
-
-        #print(f'c3: {x.shape}')
         return x

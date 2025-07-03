@@ -27,12 +27,18 @@ def Grafico(num):
     plt.show()
 
 
-def Treinamento(net, treino, device, optimizer, criterion, tempo, print_intervalo):
+def Treinamento(net, treino, device,optimizer1,optimizer2 , criterion, tempo, print_intervalo):
     net.train()
     print("Em treinamento")
     for epoch in range(tempo):
         print(f'Ano de treinamento {epoch+1}')
         running_loss = 0.0
+        if(epoch < 2):
+            print("Otimizador Adam")
+            optimizer = optimizer2
+        else:
+            print("Otimizador AGD")
+            optimizer = optimizer1
 
         for i, data in enumerate(treino, start=0):
             inputs, labels = data[0].to(device), data[1].to(device)
@@ -95,11 +101,11 @@ def main():
     
     net = RedeFlawers().to(device)
     criterion = nn.CrossEntropyLoss()
-    #optimizer = optim.SGD(net.parameters(), lr=0.0001, momentum=0.9)
-    optimizer = optim.Adam(net.parameters(), lr=0.001)
+    optimizer1 = optim.SGD(net.parameters(), lr=0.0001, momentum=0.9)
+    optimizer2 = optim.Adam(net.parameters(), lr=0.001)
 
     
-    Treinamento(net=net, treino=treino, device=device, optimizer=optimizer, criterion=criterion, tempo=10, print_intervalo=10)
+    Treinamento(net=net, treino=treino, device=device, optimizer1=optimizer1,optimizer2=optimizer2, criterion=criterion, tempo=10, print_intervalo=10)
 
     
     torch.save(net.state_dict(), PATH)
@@ -110,10 +116,11 @@ def main():
     
     Grafico(loss_grafico)
 
-'''
-def main():
+
+'''def main():
     from google.colab import drive
     drive.mount('/content/drive')
+
     os.system("clear")
 
     local = '/content/drive/MyDrive/IA/flowers'
@@ -127,10 +134,11 @@ def main():
 
     net = RedeFlawers().to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=0.0001, momentum=0.9)
+    optimizer1 = optim.SGD(net.parameters(), lr=0.0001, momentum=0.9)
+    optimizer2 = optim.Adam(net.parameters(), lr=0.001)
 
 
-    Treinamento(net=net, treino=treino, device=device, optimizer=optimizer, criterion=criterion, tempo=10, print_intervalo=10)
+    Treinamento(net=net, treino=treino, device=device, optimizer1=optimizer1,optimizer2=optimizer2, criterion=criterion, tempo=10, print_intervalo=10)
 
 
     torch.save(net.state_dict(), PATH)
@@ -142,5 +150,4 @@ def main():
     Grafico(loss_grafico)'''
 
 
-if __name__ == "__main__":
-    main()
+main()
