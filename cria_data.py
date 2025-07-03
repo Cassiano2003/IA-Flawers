@@ -1,4 +1,4 @@
-'''from torchvision import datasets, transforms
+from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, random_split
 
 class Cria_data:
@@ -22,8 +22,9 @@ class Cria_data:
         self.teste_load = DataLoader(self.teste_data, batch_size=batch_size, shuffle=True)
 
     def get_loader(self):
-        return self.treinamento_load,self.validacao_load, self.teste_load'''
-from torchvision import datasets, transforms
+        return self.treinamento_load,self.validacao_load, self.teste_load
+
+'''from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, random_split
 
 class Cria_data:
@@ -52,3 +53,4 @@ class Cria_data:
 
     def get_loader(self):
         return self.treinamento_load,self.validacao_load, self.teste_load
+'''
