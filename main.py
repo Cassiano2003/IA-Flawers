@@ -1,5 +1,5 @@
 from cria_data import Cria_data_Boa, Cria_data_Ruim
-from nosso_modelo import RedeFlawers
+from modelo import RedeFlawers
 from sklearn.metrics import classification_report
 import matplotlib.pyplot as plt
 import numpy as np
