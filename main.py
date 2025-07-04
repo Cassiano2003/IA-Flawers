@@ -174,8 +174,8 @@ def main():
     #optimizer = optim.Adam(net.parameters(), lr=0.001)
 
     
-    #PATH_Antes_Treino = Treinamento(net=net, treino=treino_1, device=device, optimizer=optimizer, criterion=criterion, tempo=10, print_intervalo=10)
-    PATH_Antes_Treino = "Data_Flowers_ep_9.pth"
+    PATH_Antes_Treino = Treinamento(net=net, treino=treino_1, device=device, optimizer=optimizer, criterion=criterion, tempo=10, print_intervalo=10)
+    #PATH_Antes_Treino = "Data_Flowers_ep_9.pth"
     Acuracia(test=teste_1, device=device, PATH=PATH_Antes_Treino)
 
     PATH_Depois_Treino = ContinuaTreinamento(net=net, treino=treino_2, device=device, optimizer=optimizer, criterion=criterion, tempo=10, print_intervalo=10,arquivo_treino=PATH_Antes_Treino)
