@@ -1,7 +1,7 @@
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, random_split
 
-class Cria_data:
+class Cria_data_Boa:
     def __init__(self, tamanho, local,qnt_treino,qnt_valida,batch_size):
         self.tamanho = tamanho
         self.qnt_treino = qnt_treino
@@ -24,10 +24,7 @@ class Cria_data:
     def get_loader(self):
         return self.treinamento_load,self.validacao_load, self.teste_load
 
-'''from torchvision import datasets, transforms
-from torch.utils.data import DataLoader, random_split
-
-class Cria_data:
+class Cria_data_Ruim:
     def __init__(self, tamanho, local,qnt_treino,qnt_valida,batch_size):
         self.tamanho = tamanho
         self.qnt_treino = qnt_treino
@@ -53,4 +50,3 @@ class Cria_data:
 
     def get_loader(self):
         return self.treinamento_load,self.validacao_load, self.teste_load
-'''
