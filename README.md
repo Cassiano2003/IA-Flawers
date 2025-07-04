@@ -6,7 +6,7 @@
 
 Primeiramente é necessario ter o Python 3 instalado e assim quando já estiver instalado execute o instalador.sh.
 
-* **Maneira de executar o instalador***: sh instalador.sh ou ./instalador.sh.
+* **Maneira de executar o instalador**: sh instalador.sh ou ./instalador.sh.
 
 
 ## Executar a IA
