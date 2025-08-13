@@ -1,6 +1,7 @@
-from cria_data import Cria_data_Boa, Cria_data_Ruim
+from cria_data import Cria_data
 from modelo import RedeFlawers
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
+import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 import torch.nn as nn
@@ -30,7 +31,7 @@ def Grafico(num):
     plt.show()
 
 
-def ContinuaTreinamento(net, treino, device,optimizer, criterion, tempo, print_intervalo,arquivo_treino):
+def ContinuaTreinamento(net, treino, device,optimizer, criterion, tempo, qual_optimise,arquivo_treino):
     net = RedeFlawers()
     checkpoint = torch.load(arquivo_treino, map_location=device)
     net.load_state_dict(checkpoint['model_state_dict'])
@@ -53,23 +54,25 @@ def ContinuaTreinamento(net, treino, device,optimizer, criterion, tempo, print_i
             optimizer.step()
 
             running_loss += loss.item()
-            if (i+1) % print_intervalo == 0:
-                print(f'[Época: {epoch + 1}, iter: {i + 1:5d}] loss: {running_loss / print_intervalo:.3f}')
+            if (i+1) % 10 == 0:
+                print(f'[Época: {epoch + 1}, iter: {i + 1:5d}] loss: {running_loss / 10:.3f}')
                 running_loss = 0.0
-        
+
+        loss_grafico_segundo.append(running_loss)
+
         if(epoch == ((start_epoch + tempo) -1)):
-            PATH = f'Data_Flowers_ep_{epoch}.pth'
+            PATH = f'/content/drive/MyDrive/IA/Data_Flowers_ep_{epoch}_{qual_optimise}.pth'
             torch.save({'epoch': epoch,
                 'model_state_dict': net.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
-                'loss': loss}, PATH)
-        
-        loss_grafico_segundo.append(running_loss)
+                'loss': loss,
+                'loss_grafico_segundo': loss_grafico_segundo}, PATH)
+
 
     print('Finished Training')
     return PATH
 
-def Treinamento(net, treino, device,optimizer, criterion, tempo, print_intervalo):
+def Treinamento(net, treino, device,optimizer, criterion, tempo, qual_optimise):
     net.train()
     print("Em treinamento")
     PATH = 0
@@ -86,17 +89,18 @@ def Treinamento(net, treino, device,optimizer, criterion, tempo, print_intervalo
             optimizer.step()
 
             running_loss += loss.item()
-            if (i+1) % print_intervalo == 0:
-                print(f'[Época: {epoch + 1}, iter: {i + 1:5d}] loss: {running_loss / print_intervalo:.3f}')
+            if (i+1) % 10 == 0:
+                print(f'[Época: {epoch + 1}, iter: {i + 1:5d}] loss: {running_loss / 10:.3f}')
                 running_loss = 0.0
-        
+
+        loss_grafico_primeiro.append(running_loss)
         if(epoch == tempo -1):
-            PATH = f'Data_Flowers_ep_{epoch}.pth'
+            PATH = f'/content/drive/MyDrive/IA/Data_Flowers_ep_{epoch}_{qual_optimise}.pth'
             torch.save({'epoch': epoch,
                 'model_state_dict': net.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
-                'loss': loss}, PATH)
-        loss_grafico_primeiro.append(running_loss)
+                'loss': loss,
+                'loss_grafico_primeiro' : loss_grafico_primeiro},PATH)
     print('Finished Training')
     return PATH
 
@@ -152,14 +156,23 @@ def Clacificador(net,dataloader,device,optimizer,arquivo_treino):
             all_labels.extend(labels.cpu().numpy())
 
     print(classification_report(all_labels, all_preds))
+    cm = confusion_matrix(all_labels, all_preds)
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+    plt.title('Matriz de Confusão')
+    plt.xlabel('Classe Predita')
+    plt.ylabel('Classe Verdadeira')
+    plt.show()
 
 
 def main():
     os.system("clear")
 
-    data = Cria_data_Boa(tamanho=256, local="flowers", qnt_treino=0.7, qnt_valida=0.15, batch_size=32) 
+    local = 'flowers'
+    
+    data = Cria_data(tamanho=256, local=local, qnt_treino=0.7, qnt_valida=0.15, batch_size=32,modo='aumentado')
     treino_1, validacao_1, teste_1 = data.get_loader()
-    data = Cria_data_Ruim(tamanho=256, local="flowers", qnt_treino=0.7, qnt_valida=0.15, batch_size=32)
+    data = Cria_data(tamanho=256, local=local, qnt_treino=0.7, qnt_valida=0.15, batch_size=32)
     treino_2, validacao_2, teste_2 = data.get_loader()
 
 
@@ -167,28 +180,31 @@ def main():
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     print("Usando:", device)
 
-    
+
     net = RedeFlawers().to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.0001, momentum=0.9)
     #optimizer = optim.Adam(net.parameters(), lr=0.001)
 
-    
-    PATH_Antes_Treino = Treinamento(net=net, treino=treino_1, device=device, optimizer=optimizer, criterion=criterion, tempo=10, print_intervalo=10)
-    #PATH_Antes_Treino = "Data_Flowers_ep_9.pth"
-    Acuracia(test=teste_1, device=device, PATH=PATH_Antes_Treino)
 
-    PATH_Depois_Treino = ContinuaTreinamento(net=net, treino=treino_2, device=device, optimizer=optimizer, criterion=criterion, tempo=10, print_intervalo=10,arquivo_treino=PATH_Antes_Treino)
-    Acuracia(test=teste_1, device=device, PATH=PATH_Depois_Treino)
+    '''PATH_Antes_Treino = Treinamento(net=net, treino=treino_1, device=device, optimizer=optimizer, criterion=criterion, tempo=50, qual_optimise='Adam')
+    #PATH_Depois_Treino = "Data_Flowers_ep_69.pth"
+    Acuracia(test=teste_2, device=device, PATH=PATH_Antes_Treino)
+
+    PATH_Depois_Treino = ContinuaTreinamento(net=net, treino=treino_2, device=device, optimizer=optimizer, criterion=criterion, tempo=20, qual_optimise='Adam',arquivo_treino=PATH_Antes_Treino)
     Acuracia(test=teste_2, device=device, PATH=PATH_Depois_Treino)
+    Acuracia(test=validacao_2, device=device, PATH=PATH_Depois_Treino)'''
 
+    PATH_Depois_Treino = "Data_Flowers_ep_69_SGD.pth"
 
+    print(PATH_Depois_Treino)
+    print("Usando um banco almentado")
+    Clacificador(net=net,dataloader=teste_1,device=device,optimizer=optimizer,arquivo_treino=PATH_Depois_Treino)
+    print("Usando um banco normal")
+    Clacificador(net=net,dataloader=teste_2,device=device,optimizer=optimizer,arquivo_treino=PATH_Depois_Treino)
 
-    Clacificador(net=net,dataloader=validacao_1,device=device,optimizer=optimizer,arquivo_treino=PATH_Depois_Treino)
-    Clacificador(net=net,dataloader=validacao_2,device=device,optimizer=optimizer,arquivo_treino=PATH_Depois_Treino)
-
-    Grafico(loss_grafico_primeiro)
-    Grafico(loss_grafico_segundo)
+    '''Grafico(loss_grafico_primeiro)
+    Grafico(loss_grafico_segundo)'''
 
 
 '''def main():
@@ -198,30 +214,37 @@ def main():
     os.system("clear")
 
     local = '/content/drive/MyDrive/IA/flowers'
-    data = Cria_data(tamanho=256, local=local,qnt_treino=0.7,qnt_valida=0.15,batch_size=32) # Reduced batch size
-    treino,validacao,teste = data.get_loader()
+    data = Cria_data(tamanho=256, local=local, qnt_treino=0.7, qnt_valida=0.15, batch_size=32,modo='aumentado')
+    treino_1, validacao_1, teste_1 = data.get_loader()
+    data = Cria_data(tamanho=256, local=local, qnt_treino=0.7, qnt_valida=0.15, batch_size=32)
+    treino_2, validacao_2, teste_2 = data.get_loader()
 
-    PATH = '/content/drive/MyDrive/IA/Data_Flowers.pth'
+    #PATH = 'Data_Flowers.pth'
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     print("Usando:", device)
 
 
     net = RedeFlawers().to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer1 = optim.SGD(net.parameters(), lr=0.0001, momentum=0.9)
-    optimizer2 = optim.Adam(net.parameters(), lr=0.001)
+    #optimizer = optim.SGD(net.parameters(), lr=0.0001, momentum=0.9)
+    optimizer = optim.Adam(net.parameters(), lr=0.001)
 
 
-    Treinamento(net=net, treino=treino, device=device, optimizer1=optimizer1,optimizer2=optimizer2, criterion=criterion, tempo=10, print_intervalo=10)
+    #PATH_Antes_Treino = Treinamento(net=net, treino=treino_1, device=device, optimizer=optimizer, criterion=criterion, tempo=50, qual_optimise='Adam')
+    PATH_Depois_Treino = "/content/drive/MyDrive/IA/Data_Flowers_ep_69.pth"
+    #Acuracia(test=teste_2, device=device, PATH=PATH_Antes_Treino)
+
+    #PATH_Depois_Treino = ContinuaTreinamento(net=net, treino=treino_2, device=device, optimizer=optimizer, criterion=criterion, tempo=20, qual_optimise='Adam',arquivo_treino=PATH_Antes_Treino)
+    Acuracia(test=teste_2, device=device, PATH=PATH_Depois_Treino)
+    Acuracia(test=validacao_2, device=device, PATH=PATH_Depois_Treino)
 
 
-    torch.save(net.state_dict(), PATH)
 
+    Clacificador(net=net,dataloader=validacao_1,device=device,optimizer=optimizer,arquivo_treino=PATH_Depois_Treino)
+    Clacificador(net=net,dataloader=validacao_2,device=device,optimizer=optimizer,arquivo_treino=PATH_Depois_Treino)
 
-    acuracia(test=teste, device=device, PATH=PATH)
-
-
-    Grafico(loss_grafico)'''
+    Grafico(loss_grafico_primeiro)
+    Grafico(loss_grafico_segundo)'''
 
 
 main()
